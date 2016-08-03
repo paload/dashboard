@@ -1,55 +1,50 @@
+var listOfPins = [];
 jQuery(document).ready(function($){
-	validateCredentials();
-	initializeAllData($);
+	getPinList($);
+	$("#loginbutton").click(function(e){
+	    login($);
+	});
+	$('#pinfield').keydown(function(e) {
+	    if (e.keyCode == 13) {
+	        $("#loginbutton").click();
+	    }
+	});
 });
 
-function initializeSpreadSheet($){
-	var mySpreadsheet = 'https://docs.google.com/spreadsheets/d/1prgXGGQZbzaK-HqATOvbdzi17TkhUUA0gFnEja2QV5E/edit#gid=0';
-	var pin = getParameterByName('pin');
-	$('#loadtable').sheetrock({
-	  url: mySpreadsheet,
-	  query: "SELECT A,B,D,F WHERE C = '"+pin+"'",
-	  callback: function(error){
-	  }
-	});
+function login($){
+	$("#invalid").hide();
+	var pin = $('#pinfield').val();
+	if(listOfPins.indexOf(pin) != -1)
+		window.location = "dashboard.html?pin="+pin;
+	else{
+		$("#invalid").show();
+		$("#pinfield").css({"border" : "1px solid red", "color" : "red"});
+	}
 }
 
-function initializeAllData($){
+function getPinList($){
 	var mySpreadsheet = 'https://docs.google.com/spreadsheets/d/1prgXGGQZbzaK-HqATOvbdzi17TkhUUA0gFnEja2QV5E/edit#gid=0';
 	$('#alldata').sheetrock({
 	  url: mySpreadsheet,
-	  query: "SELECT *",
+	  query: "SELECT C",
 	  callback: function(error){
 	  	traverseDataTable();
-	  	initializeSpreadSheet($);
 	  }
 	});
 }
 
 function traverseDataTable(){
-	var myTableArray = [];
 	var pin = getParameterByName('pin');
 	var pinFlag = false;
 	$('#alldata > tbody  > tr').each(function() {
-		var arrayOfThisRow = [];
 		var tableData = $(this).find('td');
 		if (tableData.length > 0) {
 			tableData.each(function() { 
-				arrayOfThisRow.push($(this).text()); 
-				if($(this).text() == pin)
-					pinFlag = true;
+				if(listOfPins.indexOf($(this).text()) == -1)
+					listOfPins.push($(this).text());
 			});
-        	myTableArray.push(arrayOfThisRow);
 		}		
 	});
-	if(!pinFlag){ 
-		$("#noitems").show();
-		$('#loadtable').hide();
-	}
-	else {
-		$('#loadtable').show();
-		$("#noitems").hide();
-	}
 }
 
 function getParameterByName(name, url) {
@@ -62,8 +57,15 @@ function getParameterByName(name, url) {
     return decodeURIComponent(results[2].replace(/\+/g, " "));
 }
 
-function validateCredentials(){
-	var pin = getParameterByName('pin');
-	if(pin == null)
-		window.location = "login.html";
-}
+Array.prototype.inArray = function(comparer) { 
+    for(var i=0; i < this.length; i++) { 
+        if(comparer(this[i])) return true; 
+    }
+    return false; 
+}; 
+
+Array.prototype.pushIfNotExist = function(element, comparer) { 
+    if (!this.inArray(comparer)) {
+        this.push(element);
+    }
+}; 
