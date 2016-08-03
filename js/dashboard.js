@@ -65,5 +65,5 @@ function getParameterByName(name, url) {
 function validateCredentials(){
 	var pin = getParameterByName('pin');
 	if(pin == null)
-		window.location = "login.html";
+		window.location = "index.html";
 }
